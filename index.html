@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>balldrop</title>
+    <style>
+        body{
+            background-color: rgb(10, 9, 19);
+            display: grid;
+            place-items: center;
+        }
+        button{
+            border-style: none;
+            background-color: rgb(92, 91, 92);
+            width: 100px;
+            height: 50px;
+            font-size: larger;
+            color: white;
+            border-radius: 50px;
+        }
+        button:hover{
+           cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <canvas width="600px" height="500px" id="mycanvas"></canvas>
+    <br>
+    <button onclick={addballs()}>Addballs</button>
+    <script>
+        let canvas = document.querySelector("#mycanvas")
+        let ctx = canvas.getContext('2d')
+        let coordinates = []
+        let balls = []
+
+        function renderballs(){
+            let dx = 0;
+            let dy = 30;
+            let d = 40; 
+            let strpoint = 300 - d
+            for(let i = 0 ; i<10; i++){
+                let arr= []
+                for(let j = 0; j<3+i; j++){
+                    arr.push({x:strpoint+dx, y:dy+50})
+                    dx+=40;        
+                }    
+                coordinates.push(arr)
+                dx = 0;
+                dy+=d;
+                strpoint -= d/2
+            }
+        }
+
+        function addballs(){
+            let random = Math.random()*10
+            balls.push({velocityx:0,velocityy:0,x:300+random,y:50,lasttime:Date.now()});
+        }
+        
+        renderballs()
+        
+        let acc = 0.1
+        let lasttime = Date.now()
+        function update(){
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            balls.forEach(function(ball){
+                coordinates.forEach(function(element){
+                    element.forEach(function(obj){
+                        let dist = Math.sqrt((ball.x-obj.x)**2 + (ball.y-obj.y)**2)
+                        if(dist<=12){
+                            let yh = Math.sqrt((ball.y-obj.y)**2)
+                            let xv = Math.sqrt( (ball.x-obj.x)**2)
+                            let netvelocity = Math.sqrt((ball.velocityx)**2 + (ball.velocityy)**2)
+
+                    
+                            if(ball.y < obj.y){
+                                ball.velocityy = -(netvelocity/2)*yh/10
+                            }else{
+                                ball.velocityy = (netvelocity/2)*yh/10
+                            }
+
+                            if(ball.x > obj.x){
+                                if(yh>=xv)
+                                    ball.velocityx = (netvelocity/2)*yh/10
+                                else
+                                    ball.velocityx = (netvelocity/2)*xv/10
+                            }else{
+                                if(yh>=xv)
+                                    ball.velocityx = -(netvelocity/2)*yh/10
+                                else
+                                    ball.velocityx = -(netvelocity/2)*xv/10
+                            }
+                        }
+                    })
+                })
+
+                ball.y += ball.velocityy
+                ball.x += ball.velocityx
+                ball.velocityy+=acc;
+                ctx.beginPath();
+                ctx.arc(ball.x, ball.y, 5, 0, 2 * Math.PI);
+                ctx.fillStyle = "yellow"
+                ctx.fill(); 
+            })
+
+            coordinates.forEach(function(element){
+                element.forEach(function(obj){
+                    ctx.beginPath();
+                    ctx.arc(obj.x, obj.y, 5, 0, 2 * Math.PI);
+                    ctx.fillStyle = "white"
+                    ctx.fill();
+                })
+            })
+
+            requestAnimationFrame(update)
+        }
+
+        update()
+
+    </script>
+</body>
+</html>
